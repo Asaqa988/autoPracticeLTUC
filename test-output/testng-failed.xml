@@ -5,8 +5,8 @@
     <classes>
       <class name="AutoPractce.AutoPractce.myTestCases">
         <methods>
+          <include name="Iframe"/>
           <include name="mySetup"/>
-          <include name="calender"/>
         </methods>
       </class> <!-- AutoPractce.AutoPractce.myTestCases -->
     </classes>

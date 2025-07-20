@@ -1,6 +1,11 @@
 package AutoPractce.AutoPractce;
 
 import java.awt.Desktop.Action;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,14 +28,28 @@ public class myTestCases {
 
 	String theURL = "https://codenboxautomationlab.com/practice/";
 
+	Connection con;
+
+	Statement stmt;
+
+	ResultSet rs;
+
+	String CustomerFirstName;
+	String CustomerLastName;
+	String CustomerEmail;
+	String CustomerPhone;
+	String CustomerDetails;
+
 	@BeforeTest
-	public void mySetup() {
+	public void mySetup() throws SQLException {
+
+		con = DriverManager.getConnection("jdbc:mysql://localhost:3306/classicmodels", "root", "abed");
 
 		driver.get(theURL);
 
 		driver.manage().window().maximize();
-		
-		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(3)); 
+
+		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(3));
 	}
 
 	@Test(enabled = false)
@@ -203,8 +222,8 @@ public class myTestCases {
 
 	}
 
-	@Test
-	public void calender() throws InterruptedException {
+	@Test(priority = 1)
+	public void calender() throws InterruptedException, SQLException {
 
 		driver.findElement(By.linkText("Booking Calendar")).click();
 
@@ -217,17 +236,121 @@ public class myTestCases {
 
 		Thread.sleep(2000);
 		WebElement TheTable = driver.findElement(By.cssSelector(".datepick.wpbc_calendar"));
-		
-		List<WebElement> tableData = TheTable.findElements(By.tagName("td"));
-		
-		for(int i = 0 ; i < tableData.size();i++) {
-			;
-			
-			System.out.println(tableData.get(i).getText());
-		}
-		TheTable.findElement(By.linkText("19")).click();
 
-		TheTable.findElement(By.linkText("31")).click();
+		List<WebElement> tableData = TheTable.findElements(By.tagName("td"));
+
+		for (int i = 0; i < tableData.size(); i++) {
+			;
+
+//			System.out.println(tableData.get(i).getText());
+		}
+		TheTable.findElement(By.linkText("24")).click();
+
+	}
+
+	@Test(priority = 2)
+	public void calenderAdd() throws InterruptedException, SQLException {
+
+		Thread.sleep(4000);
+		String QueryToAdd = "INSERT INTO customers (customerNumber, customerName,contactLastName, contactFirstName, phone, addressLine1, city, country,salesRepEmployeeNumber, creditLimit) VALUES (999, 'Abc Company', 'ali','ahmad', '962797700235', '123 Main St', 'Los Angeles', 'USA', 1370, 50000.00)";
+
+		stmt = con.createStatement();
+		int rowInserted = stmt.executeUpdate(QueryToAdd);
+		System.out.println(rowInserted);
+	}
+
+	@Test(priority = 3)
+	public void CalendrRead() throws SQLException, InterruptedException {
+		Thread.sleep(4000);
+
+		String QueryToRead = "select * from customers where customerNumber=999";
+
+		stmt = con.createStatement();
+		rs = stmt.executeQuery(QueryToRead);
+
+		while (rs.next()) {
+			CustomerFirstName = rs.getString("contactFirstName");
+			CustomerLastName = rs.getString("contactLastName");
+			CustomerEmail = rs.getString("contactFirstName") + rs.getString("contactLastName") + "@gmail.com";
+			CustomerPhone = rs.getString("phone");
+			CustomerDetails = rs.getString("customerName");
+
+		}
+
+		driver.findElement(By.id("name1")).sendKeys(CustomerFirstName);
+		driver.findElement(By.id("secondname1")).sendKeys(CustomerLastName);
+		driver.findElement(By.id("email1")).sendKeys(CustomerEmail);
+		driver.findElement(By.id("phone1")).sendKeys(CustomerPhone);
+		driver.findElement(By.id("details1")).sendKeys(CustomerDetails);
+	}
+
+	@Test(priority = 4)
+	public void calenderupdate() throws InterruptedException, SQLException {
+		Thread.sleep(4000);
+
+		String QueryToUpdate = "update customers set CustomerNumber = 1161 where customerNumber = 999";
+
+		stmt = con.createStatement();
+
+		stmt.executeUpdate(QueryToUpdate);
+	}
+
+	@Test(priority = 5)
+	public void CalendrReadAfterUpdate() throws SQLException, InterruptedException {
+		driver.navigate().refresh();
+		Thread.sleep(4000);
+
+		String QueryToRead = "select * from customers where customerNumber=1161";
+
+		stmt = con.createStatement();
+		rs = stmt.executeQuery(QueryToRead);
+
+		while (rs.next()) {
+			CustomerFirstName = rs.getString("contactFirstName");
+			CustomerLastName = rs.getString("contactLastName");
+			CustomerEmail = rs.getString("contactFirstName") + rs.getString("contactLastName") + "@gmail.com";
+			CustomerPhone = rs.getString("phone");
+			CustomerDetails = rs.getString("customerName");
+
+		}
+
+		driver.findElement(By.id("name1")).sendKeys(CustomerFirstName);
+		driver.findElement(By.id("secondname1")).sendKeys(CustomerLastName);
+		driver.findElement(By.id("email1")).sendKeys(CustomerEmail);
+		driver.findElement(By.id("phone1")).sendKeys(CustomerPhone);
+		driver.findElement(By.id("details1")).sendKeys(CustomerDetails);
+	}
+
+	@Test(priority = 6)
+	public void calenderDelete() throws InterruptedException, SQLException {
+		String QueryToDelete = "delete from customers where customerNumber = 1161";
+		stmt = con.createStatement();
+
+		stmt.executeUpdate(QueryToDelete);
+
+	}
+
+	@Test(priority = 7)
+	public void Iframe() throws InterruptedException {
+
+		Set<String> handels = driver.getWindowHandles();
+		List<String> windowList = new ArrayList<>(handels);
+
+		driver.switchTo().window(windowList.get(0));
+
+		Thread.sleep(2000);
+
+		JavascriptExecutor js = (JavascriptExecutor) driver;
+
+		js.executeScript("window.scrollTo(0,2500)");
+
+		WebElement theFrame = driver.findElement(By.id("courses-iframe"));
+
+		driver.switchTo().frame(theFrame);
+		Thread.sleep(2000);
+		WebElement BurgerMenu = driver.findElement(By.cssSelector(".ct-mobile-meta-item.btn-nav-mobile.open-menu"));
+
+		BurgerMenu.click();
 
 	}
 }
